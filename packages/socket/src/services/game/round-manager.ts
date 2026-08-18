@@ -96,7 +96,9 @@ export class RoundManager {
     this.opts.io.to(this.opts.gameId).emit(EVENTS.GAME.START_COOLDOWN)
     await this.opts.cooldown.start(3)
 
-    void this.newQuestion()
+    void this.newQuestion().catch((error: unknown) => {
+      console.error("Round manager error:", error)
+    })
   }
 
   async newQuestion(): Promise<void> {
@@ -316,7 +318,9 @@ export class RoundManager {
     }
 
     this.currentQuestion += 1
-    void this.newQuestion()
+    void this.newQuestion().catch((error: unknown) => {
+      console.error("Round manager error:", error)
+    })
   }
 
   abortQuestion(socket: Socket): void {
