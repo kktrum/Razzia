@@ -52,9 +52,9 @@ export const usersRepo = {
   },
 
   byId(id: string): User | null {
-    const row = getDb()
-      .prepare("SELECT * FROM users WHERE id = ?")
-      .get(id) as UserRow | undefined
+    const row = getDb().prepare("SELECT * FROM users WHERE id = ?").get(id) as
+      | UserRow
+      | undefined
 
     return row ? toUser(row) : null
   },
@@ -230,7 +230,10 @@ export const invitesRepo = {
       return null
     }
 
-    return { role: row.role as Role, username: (row.username as string) ?? null }
+    return {
+      role: row.role as Role,
+      username: (row.username as string) ?? null,
+    }
   },
 
   create(idHash: string, role: Role, ttlMs: number, username?: string): void {
@@ -264,9 +267,14 @@ export const invitesRepo = {
       return null
     }
 
-    getDb().prepare("UPDATE invites SET used_at = ? WHERE id = ?").run(now(), idHash)
+    getDb()
+      .prepare("UPDATE invites SET used_at = ? WHERE id = ?")
+      .run(now(), idHash)
 
-    return { role: row.role as Role, username: (row.username as string) ?? null }
+    return {
+      role: row.role as Role,
+      username: (row.username as string) ?? null,
+    }
   },
 }
 
@@ -326,7 +334,9 @@ export const quizzesRepo = {
   },
 
   /** Quizzes owned by, or shared with, a user. */
-  listForUser(userId: string): (QuizzRow & { permission: Permission | "owner" })[] {
+  listForUser(
+    userId: string,
+  ): (QuizzRow & { permission: Permission | "owner" })[] {
     const rows = getDb()
       .prepare(
         `SELECT q.*, 'owner' AS permission FROM quizzes q WHERE q.owner_id = ?
@@ -347,9 +357,10 @@ export const quizzesRepo = {
   },
 
   listAll(): QuizzRow[] {
-    const rows = getDb()
-      .prepare("SELECT * FROM quizzes")
-      .all() as Record<string, unknown>[]
+    const rows = getDb().prepare("SELECT * FROM quizzes").all() as Record<
+      string,
+      unknown
+    >[]
 
     return rows.map((row) => ({
       id: row.id as string,
@@ -441,8 +452,15 @@ export const resultsRepo = {
 
   listAll() {
     return getDb()
-      .prepare("SELECT id, subject, date, owner_id FROM results ORDER BY date DESC")
-      .all() as { id: string; subject: string; date: string; owner_id: string }[]
+      .prepare(
+        "SELECT id, subject, date, owner_id FROM results ORDER BY date DESC",
+      )
+      .all() as {
+      id: string
+      subject: string
+      date: string
+      owner_id: string
+    }[]
   },
 
   byId(id: string): { ownerId: string; data: unknown } | null {

@@ -43,7 +43,9 @@ export const revokeSession = (token: string | undefined): void => {
 }
 
 /** Parses a Cookie header into a plain map. */
-export const parseCookies = (header: string | undefined): Record<string, string> => {
+export const parseCookies = (
+  header: string | undefined,
+): Record<string, string> => {
   if (!header) {
     return {}
   }

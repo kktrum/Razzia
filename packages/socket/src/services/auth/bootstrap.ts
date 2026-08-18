@@ -24,7 +24,8 @@ const INVITE_TTL = 1000 * 60 * 60 * 24 * 7 // 7 days
 /** Creates a one-time admin invite and prints the registration link to logs. */
 const createBootstrapInvite = (): void => {
   const token =
-    process.env.ADMIN_BOOTSTRAP_TOKEN ?? crypto.randomBytes(24).toString("base64url")
+    process.env.ADMIN_BOOTSTRAP_TOKEN ??
+    crypto.randomBytes(24).toString("base64url")
 
   invitesRepo.create(hash(token), "admin", INVITE_TTL)
 
@@ -103,7 +104,9 @@ const importLegacyFiles = (ownerId: string): void => {
       }
 
       try {
-        const data = JSON.parse(fs.readFileSync(join(resultsDir, file), "utf-8"))
+        const data = JSON.parse(
+          fs.readFileSync(join(resultsDir, file), "utf-8"),
+        )
 
         // Results carry a stable id (their primary key); skip any already
         // imported so a re-run does not error out or duplicate.

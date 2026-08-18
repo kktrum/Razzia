@@ -104,7 +104,11 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
           <h2 className="text-foreground text-lg font-bold">
             {t("manager:share.title")}
           </h2>
-          <button onClick={onClose} type="button" aria-label={t("common:close")}>
+          <button
+            onClick={onClose}
+            type="button"
+            aria-label={t("common:close")}
+          >
             <X className="text-muted-foreground size-5" />
           </button>
         </div>
@@ -146,7 +150,11 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
               ))}
             </select>
 
-            <Button className="mt-2 w-full" onClick={handleShare} disabled={busy}>
+            <Button
+              className="mt-2 w-full"
+              onClick={handleShare}
+              disabled={busy}
+            >
               {t("manager:share.confirm")}
             </Button>
 

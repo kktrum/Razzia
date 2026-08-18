@@ -8,7 +8,10 @@ import {
   usersRepo,
 } from "@razzia/socket/db/repositories"
 import { assertIsAdmin, assertCanView } from "@razzia/socket/services/authz"
-import { bootstrap, completeBootstrap } from "@razzia/socket/services/auth/bootstrap"
+import {
+  bootstrap,
+  completeBootstrap,
+} from "@razzia/socket/services/auth/bootstrap"
 import {
   authenticationOptions,
   registrationOptions,
@@ -47,7 +50,10 @@ const rememberPendingRegistration = (
   id: string,
   data: Omit<PendingRegistration, "expires">,
 ): void => {
-  pendingRegistrations.set(id, { ...data, expires: Date.now() + PENDING_REGISTRATION_TTL })
+  pendingRegistrations.set(id, {
+    ...data,
+    expires: Date.now() + PENDING_REGISTRATION_TTL,
+  })
 }
 
 const recallPendingRegistration = (id: string): PendingRegistration | null => {
@@ -141,14 +147,23 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     "/api/auth/register/verify",
     { config: { rateLimit: authRateLimit } },
     async (req, reply) => {
-      const body = req.body as { userId: string; response: unknown; deviceLabel?: string }
+      const body = req.body as {
+        userId: string
+        response: unknown
+        deviceLabel?: string
+      }
       const pendingReg = recallPendingRegistration(body.userId)
 
       if (!pendingReg) {
-        return reply.code(400).send({ error: "errors:auth.registrationExpired" })
+        return reply
+          .code(400)
+          .send({ error: "errors:auth.registrationExpired" })
       }
 
-      const registration = await verifyRegistration({ id: body.userId }, body.response)
+      const registration = await verifyRegistration(
+        { id: body.userId },
+        body.response,
+      )
 
       if (!registration) {
         return reply.code(400).send({ error: "errors:auth.registrationFailed" })
@@ -233,7 +248,9 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
   app.get("/api/auth/me", async (req, reply) => {
     const user = currentUser(req)
 
-    return user ? { user: publicUser(user) } : reply.code(401).send({ user: null })
+    return user
+      ? { user: publicUser(user) }
+      : reply.code(401).send({ user: null })
   })
 
   /* --------------------- Admin: user management ------------------- */
@@ -253,7 +270,11 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
 
     const body = req.body as { role?: "admin" | "manager" }
     const token = crypto.randomBytes(18).toString("base64url")
-    invitesRepo.create(hash(token), body.role ?? "manager", 1000 * 60 * 60 * 24 * 7)
+    invitesRepo.create(
+      hash(token),
+      body.role ?? "manager",
+      1000 * 60 * 60 * 24 * 7,
+    )
 
     return { invite: token }
   })
@@ -267,7 +288,8 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     const body = req.body as { role?: "admin" | "manager"; disabled?: boolean }
 
     if (body.role) usersRepo.setRole(id, body.role)
-    if (typeof body.disabled === "boolean") usersRepo.setDisabled(id, body.disabled)
+    if (typeof body.disabled === "boolean")
+      usersRepo.setDisabled(id, body.disabled)
 
     return { ok: true }
   })
@@ -360,7 +382,10 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     if (!user) return
 
     const { id } = req.params as { id: string }
-    const body = req.body as { granteeId: string; permission: "view" | "run" | "edit" }
+    const body = req.body as {
+      granteeId: string
+      permission: "view" | "run" | "edit"
+    }
 
     const quiz = quizzesRepo.byId(id)
 

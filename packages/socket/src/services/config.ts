@@ -156,7 +156,11 @@ export const cloneQuizz = (id: string, user: User): { id: string } => {
 
 /* ------------------------------ Results ---------------------------- */
 
-export const saveResult = (data: GameResult, ownerId: string, quizId: string | null) => {
+export const saveResult = (
+  data: GameResult,
+  ownerId: string,
+  quizId: string | null,
+) => {
   try {
     resultsRepo.create({
       id: data.id,

@@ -65,7 +65,10 @@ export const registrationOptions = async (identity: Identity) => {
     },
   })
 
-  remember(`reg:${identity.id}`, { challenge: options.challenge, userId: identity.id })
+  remember(`reg:${identity.id}`, {
+    challenge: options.challenge,
+    userId: identity.id,
+  })
 
   return options
 }

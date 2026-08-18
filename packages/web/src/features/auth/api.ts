@@ -16,7 +16,8 @@ const parse = async (res: Response) => {
 const post = (url: string, body?: unknown) =>
   fetch(url, {
     method: "POST",
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    headers:
+      body === undefined ? undefined : { "Content-Type": "application/json" },
     credentials: "include",
     body: body === undefined ? undefined : JSON.stringify(body),
   }).then(parse)

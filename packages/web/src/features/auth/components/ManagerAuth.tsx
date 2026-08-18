@@ -86,17 +86,15 @@ const ManagerAuth = ({ onAuthed }: Props) => {
           {t("auth:title")}
         </h1>
         <p className="text-muted-foreground text-sm">
-          {mode === "login" ? t("auth:loginSubtitle") : t("auth:registerSubtitle")}
+          {mode === "login"
+            ? t("auth:loginSubtitle")
+            : t("auth:registerSubtitle")}
         </p>
       </div>
 
       {mode === "login" ? (
         <div className="mt-6 flex flex-col gap-3">
-          <Button
-            className="w-full"
-            onClick={handleLogin}
-            disabled={busy}
-          >
+          <Button className="w-full" onClick={handleLogin} disabled={busy}>
             <KeyRound className="size-5" />
             {t("auth:signIn")}
           </Button>
