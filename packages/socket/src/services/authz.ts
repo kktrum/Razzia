@@ -1,5 +1,9 @@
 import type { Permission, User } from "@razzia/common/types/user"
-import { quizzesRepo, resultsRepo, sharesRepo } from "@razzia/socket/db/repositories"
+import {
+  quizzesRepo,
+  resultsRepo,
+  sharesRepo,
+} from "@razzia/socket/db/repositories"
 
 export class AuthzError extends Error {}
 

@@ -3,7 +3,9 @@ import { sessionsRepo, usersRepo } from "@razzia/socket/db/repositories"
 import crypto from "crypto"
 
 export const SESSION_COOKIE = "razzia_session"
-const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
+
+// 30 days
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30
 
 const hash = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex")
@@ -43,7 +45,9 @@ export const revokeSession = (token: string | undefined): void => {
 }
 
 /** Parses a Cookie header into a plain map. */
-export const parseCookies = (header: string | undefined): Record<string, string> => {
+export const parseCookies = (
+  header: string | undefined,
+): Record<string, string> => {
   if (!header) {
     return {}
   }

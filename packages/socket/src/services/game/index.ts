@@ -49,12 +49,13 @@ class Game {
     { name: Status; data: StatusDataMap[Status] }
   >()
 
-  constructor(
-    io: Server,
-    socket: Socket,
-    quizz: QuizzWithId,
-    ownerUserId: string,
-  ) {
+  constructor(input: {
+    io: Server
+    socket: Socket
+    quizz: QuizzWithId
+    ownerUserId: string
+  }) {
+    const { io, socket, quizz, ownerUserId } = input
     const clientId = getClientId(socket)
 
     this.io = io

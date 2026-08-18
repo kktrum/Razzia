@@ -19,14 +19,23 @@ const getPath = (p = "") =>
 const hash = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex")
 
-const INVITE_TTL = 1000 * 60 * 60 * 24 * 7 // 7 days
+interface LegacyResultFile {
+  id: string
+  subject: string
+  date: string
+  [key: string]: unknown
+}
+
+// 7 days
+const INVITE_TTL = 1000 * 60 * 60 * 24 * 7
 
 /** Creates a one-time admin invite and prints the registration link to logs. */
 const createBootstrapInvite = (): void => {
   const token =
-    process.env.ADMIN_BOOTSTRAP_TOKEN ?? crypto.randomBytes(24).toString("base64url")
+    process.env.ADMIN_BOOTSTRAP_TOKEN ??
+    crypto.randomBytes(24).toString("base64url")
 
-  invitesRepo.create(hash(token), "admin", INVITE_TTL)
+  invitesRepo.create({ idHash: hash(token), role: "admin", ttlMs: INVITE_TTL })
 
   console.log(
     "\n=== Razzia first-run setup ===\n" +
@@ -65,7 +74,9 @@ const importLegacyFiles = (ownerId: string): void => {
       }
 
       try {
-        const raw = JSON.parse(fs.readFileSync(join(quizzDir, file), "utf-8"))
+        const raw: unknown = JSON.parse(
+          fs.readFileSync(join(quizzDir, file), "utf-8"),
+        )
         const parsed = quizzValidator.safeParse(raw)
 
         if (!parsed.success) {
@@ -103,7 +114,9 @@ const importLegacyFiles = (ownerId: string): void => {
       }
 
       try {
-        const data = JSON.parse(fs.readFileSync(join(resultsDir, file), "utf-8"))
+        const data = JSON.parse(
+          fs.readFileSync(join(resultsDir, file), "utf-8"),
+        ) as LegacyResultFile
 
         // Results carry a stable id (their primary key); skip any already
         // imported so a re-run does not error out or duplicate.

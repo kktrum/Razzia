@@ -52,9 +52,9 @@ export const usersRepo = {
   },
 
   byId(id: string): User | null {
-    const row = getDb()
-      .prepare("SELECT * FROM users WHERE id = ?")
-      .get(id) as UserRow | undefined
+    const row = getDb().prepare("SELECT * FROM users WHERE id = ?").get(id) as
+      | UserRow
+      | undefined
 
     return row ? toUser(row) : null
   },
@@ -141,23 +141,23 @@ export const credentialsRepo = {
       userId: row.user_id as string,
       publicKey: row.public_key as Buffer,
       counter: row.counter as number,
-      transports: JSON.parse((row.transports as string) || "[]"),
-      deviceLabel: (row.device_label as string) ?? null,
+      transports: JSON.parse((row.transports as string) || "[]") as string[],
+      deviceLabel: row.device_label as string | null,
     }
   },
 
   byUser(userId: string): CredentialRecord[] {
     const rows = getDb()
       .prepare("SELECT * FROM credentials WHERE user_id = ?")
-      .all(userId) as Record<string, unknown>[]
+      .all(userId) as Array<Record<string, unknown>>
 
     return rows.map((row) => ({
       id: row.id as string,
       userId: row.user_id as string,
       publicKey: row.public_key as Buffer,
       counter: row.counter as number,
-      transports: JSON.parse((row.transports as string) || "[]"),
-      deviceLabel: (row.device_label as string) ?? null,
+      transports: JSON.parse((row.transports as string) || "[]") as string[],
+      deviceLabel: row.device_label as string | null,
     }))
   },
 
@@ -230,12 +230,17 @@ export const invitesRepo = {
       return null
     }
 
-    return { role: row.role as Role, username: (row.username as string) ?? null }
+    return { role: row.role as Role, username: row.username as string | null }
   },
 
-  create(idHash: string, role: Role, ttlMs: number, username?: string): void {
+  create(input: {
+    idHash: string
+    role: Role
+    ttlMs: number
+    username?: string
+  }): void {
     const created = new Date()
-    const expires = new Date(created.getTime() + ttlMs)
+    const expires = new Date(created.getTime() + input.ttlMs)
 
     getDb()
       .prepare(
@@ -243,9 +248,9 @@ export const invitesRepo = {
          VALUES (?, ?, ?, ?, ?)`,
       )
       .run(
-        idHash,
-        role,
-        username ?? null,
+        input.idHash,
+        input.role,
+        input.username ?? null,
         created.toISOString(),
         expires.toISOString(),
       )
@@ -264,9 +269,11 @@ export const invitesRepo = {
       return null
     }
 
-    getDb().prepare("UPDATE invites SET used_at = ? WHERE id = ?").run(now(), idHash)
+    getDb()
+      .prepare("UPDATE invites SET used_at = ? WHERE id = ?")
+      .run(now(), idHash)
 
-    return { role: row.role as Role, username: (row.username as string) ?? null }
+    return { role: row.role as Role, username: row.username as string | null }
   },
 }
 
@@ -317,7 +324,7 @@ export const quizzesRepo = {
       id: row.id as string,
       ownerId: row.owner_id as string,
       subject: row.subject as string,
-      data: JSON.parse(row.data as string),
+      data: JSON.parse(row.data as string) as unknown,
     }
   },
 
@@ -326,7 +333,9 @@ export const quizzesRepo = {
   },
 
   /** Quizzes owned by, or shared with, a user. */
-  listForUser(userId: string): (QuizzRow & { permission: Permission | "owner" })[] {
+  listForUser(
+    userId: string,
+  ): Array<QuizzRow & { permission: Permission | "owner" }> {
     const rows = getDb()
       .prepare(
         `SELECT q.*, 'owner' AS permission FROM quizzes q WHERE q.owner_id = ?
@@ -335,27 +344,27 @@ export const quizzesRepo = {
            JOIN quiz_shares s ON s.quiz_id = q.id
           WHERE s.grantee_id = ?`,
       )
-      .all(userId, userId) as Record<string, unknown>[]
+      .all(userId, userId) as Array<Record<string, unknown>>
 
     return rows.map((row) => ({
       id: row.id as string,
       ownerId: row.owner_id as string,
       subject: row.subject as string,
-      data: JSON.parse(row.data as string),
+      data: JSON.parse(row.data as string) as unknown,
       permission: row.permission as Permission | "owner",
     }))
   },
 
   listAll(): QuizzRow[] {
-    const rows = getDb()
-      .prepare("SELECT * FROM quizzes")
-      .all() as Record<string, unknown>[]
+    const rows = getDb().prepare("SELECT * FROM quizzes").all() as Array<
+      Record<string, unknown>
+    >
 
     return rows.map((row) => ({
       id: row.id as string,
       ownerId: row.owner_id as string,
       subject: row.subject as string,
-      data: JSON.parse(row.data as string),
+      data: JSON.parse(row.data as string) as unknown,
     }))
   },
 }
@@ -421,13 +430,20 @@ export const resultsRepo = {
       .prepare(
         "SELECT id, subject, date FROM results WHERE owner_id = ? ORDER BY date DESC",
       )
-      .all(ownerId) as { id: string; subject: string; date: string }[]
+      .all(ownerId) as Array<{ id: string; subject: string; date: string }>
   },
 
   listAll() {
     return getDb()
-      .prepare("SELECT id, subject, date, owner_id FROM results ORDER BY date DESC")
-      .all() as { id: string; subject: string; date: string; owner_id: string }[]
+      .prepare(
+        "SELECT id, subject, date, owner_id FROM results ORDER BY date DESC",
+      )
+      .all() as Array<{
+      id: string
+      subject: string
+      date: string
+      owner_id: string
+    }>
   },
 
   byId(id: string): { ownerId: string; data: unknown } | null {

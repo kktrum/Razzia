@@ -8,7 +8,10 @@ import {
   usersRepo,
 } from "@razzia/socket/db/repositories"
 import { assertIsAdmin, assertCanView } from "@razzia/socket/services/authz"
-import { bootstrap, completeBootstrap } from "@razzia/socket/services/auth/bootstrap"
+import {
+  bootstrap,
+  completeBootstrap,
+} from "@razzia/socket/services/auth/bootstrap"
 import {
   authenticationOptions,
   registrationOptions,
@@ -47,7 +50,10 @@ const rememberPendingRegistration = (
   id: string,
   data: Omit<PendingRegistration, "expires">,
 ): void => {
-  pendingRegistrations.set(id, { ...data, expires: Date.now() + PENDING_REGISTRATION_TTL })
+  pendingRegistrations.set(id, {
+    ...data,
+    expires: Date.now() + PENDING_REGISTRATION_TTL,
+  })
 }
 
 const recallPendingRegistration = (id: string): PendingRegistration | null => {
@@ -141,14 +147,23 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     "/api/auth/register/verify",
     { config: { rateLimit: authRateLimit } },
     async (req, reply) => {
-      const body = req.body as { userId: string; response: unknown; deviceLabel?: string }
+      const body = req.body as {
+        userId: string
+        response: unknown
+        deviceLabel?: string
+      }
       const pendingReg = recallPendingRegistration(body.userId)
 
       if (!pendingReg) {
-        return reply.code(400).send({ error: "errors:auth.registrationExpired" })
+        return reply
+          .code(400)
+          .send({ error: "errors:auth.registrationExpired" })
       }
 
-      const registration = await verifyRegistration({ id: body.userId }, body.response)
+      const registration = await verifyRegistration(
+        { id: body.userId },
+        body.response,
+      )
 
       if (!registration) {
         return reply.code(400).send({ error: "errors:auth.registrationFailed" })
@@ -201,7 +216,7 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
   app.post(
     "/api/auth/login/options",
     { config: { rateLimit: authRateLimit } },
-    async () => authenticationOptions(),
+    () => authenticationOptions(),
   )
 
   app.post(
@@ -222,7 +237,7 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     },
   )
 
-  app.post("/api/auth/logout", async (req, reply) => {
+  app.post("/api/auth/logout", (req, reply) => {
     const cookies = parseCookies(req.headers.cookie)
     revokeSession(cookies[SESSION_COOKIE])
     reply.header("Set-Cookie", clearSessionCookie())
@@ -230,51 +245,78 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     return { ok: true }
   })
 
-  app.get("/api/auth/me", async (req, reply) => {
+  app.get("/api/auth/me", (req, reply) => {
     const user = currentUser(req)
 
-    return user ? { user: publicUser(user) } : reply.code(401).send({ user: null })
+    return user
+      ? { user: publicUser(user) }
+      : reply.code(401).send({ user: null })
   })
 
   /* --------------------- Admin: user management ------------------- */
 
-  app.get("/api/admin/users", async (req, reply) => {
+  app.get("/api/admin/users", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
+
     assertIsAdmin(user)
 
     return { users: usersRepo.all().map(publicUser) }
   })
 
-  app.post("/api/admin/invites", async (req, reply) => {
+  app.post("/api/admin/invites", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
+
     assertIsAdmin(user)
 
     const body = req.body as { role?: "admin" | "manager" }
     const token = crypto.randomBytes(18).toString("base64url")
-    invitesRepo.create(hash(token), body.role ?? "manager", 1000 * 60 * 60 * 24 * 7)
+    invitesRepo.create({
+      idHash: hash(token),
+      role: body.role ?? "manager",
+      ttlMs: 1000 * 60 * 60 * 24 * 7,
+    })
 
     return { invite: token }
   })
 
-  app.patch("/api/admin/users/:id", async (req, reply) => {
+  app.patch("/api/admin/users/:id", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
+
     assertIsAdmin(user)
 
     const { id } = req.params as { id: string }
     const body = req.body as { role?: "admin" | "manager"; disabled?: boolean }
 
-    if (body.role) usersRepo.setRole(id, body.role)
-    if (typeof body.disabled === "boolean") usersRepo.setDisabled(id, body.disabled)
+    if (body.role) {
+      usersRepo.setRole(id, body.role)
+    }
+
+    if (typeof body.disabled === "boolean") {
+      usersRepo.setDisabled(id, body.disabled)
+    }
 
     return { ok: true }
   })
 
-  app.delete("/api/admin/users/:id", async (req, reply) => {
+  app.delete("/api/admin/users/:id", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
+
     assertIsAdmin(user)
 
     const { id } = req.params as { id: string }
@@ -290,9 +332,12 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
 
   /* --------------------- JSON import / export --------------------- */
 
-  app.get("/api/quizzes/:id/export", async (req, reply) => {
+  app.get("/api/quizzes/:id/export", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
 
     const { id } = req.params as { id: string }
     assertCanView(user, id)
@@ -318,9 +363,12 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     return payload
   })
 
-  app.post("/api/quizzes/import", async (req, reply) => {
+  app.post("/api/quizzes/import", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
 
     const parsed = quizzValidator.safeParse(req.body)
 
@@ -343,9 +391,12 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
   // The full /api/admin/users list is admin-only, so a non-admin owner opening
   // the share dialog previously hit a 403 and saw "no directory". Sharing only
   // needs public fields (id / name / username), so expose those to everyone.
-  app.get("/api/directory", async (req, reply) => {
+  app.get("/api/directory", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
 
     return {
       users: usersRepo
@@ -355,12 +406,18 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     }
   })
 
-  app.post("/api/quizzes/:id/share", async (req, reply) => {
+  app.post("/api/quizzes/:id/share", (req, reply) => {
     const user = requireUser(req, reply)
-    if (!user) return
+
+    if (!user) {
+      return
+    }
 
     const { id } = req.params as { id: string }
-    const body = req.body as { granteeId: string; permission: "view" | "run" | "edit" }
+    const body = req.body as {
+      granteeId: string
+      permission: "view" | "run" | "edit"
+    }
 
     const quiz = quizzesRepo.byId(id)
 

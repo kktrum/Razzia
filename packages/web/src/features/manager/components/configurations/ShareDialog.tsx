@@ -1,7 +1,6 @@
 import type { PublicUser } from "@razzia/common/types/user"
 import Button from "@razzia/web/components/Button"
 import { listShareCandidates, shareQuizz } from "@razzia/web/features/auth/api"
-import type { Perm } from "@razzia/web/features/auth/permissions"
 import { X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
@@ -13,13 +12,16 @@ interface Props {
   onClose: () => void
 }
 
-const PERMISSIONS: Perm[] = ["view", "run", "edit"]
+/** Permissions a quiz can be shared with (excludes the implicit "owner"). */
+type SharePerm = "view" | "run" | "edit"
+
+const PERMISSIONS: SharePerm[] = ["view", "run", "edit"]
 
 const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
   const { t } = useTranslation()
   const [users, setUsers] = useState<PublicUser[]>([])
   const [granteeId, setGranteeId] = useState("")
-  const [permission, setPermission] = useState<Perm>("run")
+  const [permission, setPermission] = useState<SharePerm>("run")
   const [busy, setBusy] = useState(false)
   const [loadError, setLoadError] = useState(false)
 
@@ -68,7 +70,11 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
           <h2 className="text-foreground text-lg font-bold">
             {t("manager:share.title")}
           </h2>
-          <button onClick={onClose} type="button" aria-label={t("common:close")}>
+          <button
+            onClick={onClose}
+            type="button"
+            aria-label={t("common:close")}
+          >
             <X className="text-muted-foreground size-5" />
           </button>
         </div>
@@ -101,7 +107,7 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
             <select
               className="border-border bg-background text-foreground rounded-lg border px-3 py-2 text-sm"
               value={permission}
-              onChange={(e) => setPermission(e.target.value as Perm)}
+              onChange={(e) => setPermission(e.target.value as SharePerm)}
             >
               {PERMISSIONS.map((p) => (
                 <option key={p} value={p}>
@@ -110,7 +116,11 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
               ))}
             </select>
 
-            <Button className="mt-2 w-full" onClick={handleShare} disabled={busy}>
+            <Button
+              className="mt-2 w-full"
+              onClick={handleShare}
+              disabled={busy}
+            >
               {t("manager:share.confirm")}
             </Button>
           </div>

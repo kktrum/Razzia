@@ -1,3 +1,4 @@
+import type { User } from "@razzia/common/types/user"
 import { credentialsRepo, usersRepo } from "@razzia/socket/db/repositories"
 import {
   generateAuthenticationOptions,
@@ -65,7 +66,10 @@ export const registrationOptions = async (identity: Identity) => {
     },
   })
 
-  remember(`reg:${identity.id}`, { challenge: options.challenge, userId: identity.id })
+  remember(`reg:${identity.id}`, {
+    challenge: options.challenge,
+    userId: identity.id,
+  })
 
   return options
 }
@@ -103,7 +107,9 @@ export const verifyRegistration = async (
     requireUserVerification: false,
   })
 
-  if (!verification.verified || !verification.registrationInfo) {
+  // `registrationInfo` is always present when `verified` is true (and never
+  // present otherwise) per the library's discriminated union return type.
+  if (!verification.verified) {
     return null
   }
 
@@ -141,8 +147,11 @@ export const verifyAuthentication = async (
     throw new Error("errors:auth.challengeExpired")
   }
 
-  const credentialId = response.id as string
-  const credential = credentialsRepo.byId(credentialId)
+  if (!response.id) {
+    return null
+  }
+
+  const credential = credentialsRepo.byId(response.id)
 
   if (!credential) {
     return null

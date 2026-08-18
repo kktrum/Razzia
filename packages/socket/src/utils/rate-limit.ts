@@ -20,13 +20,17 @@ setInterval(() => {
       windows.delete(key)
     }
   }
-}, SWEEP_INTERVAL).unref?.()
+}, SWEEP_INTERVAL).unref()
 
 /**
  * Returns true if `key` has exceeded `max` calls within the trailing
  * `windowMs` window, and records this call either way.
  */
-export const isRateLimited = (key: string, max: number, windowMs: number): boolean => {
+export const isRateLimited = (
+  key: string,
+  max: number,
+  windowMs: number,
+): boolean => {
   const now = Date.now()
   const existing = windows.get(key)
 

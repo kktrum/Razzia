@@ -14,7 +14,7 @@ import {
 } from "@razzia/socket/services/auth/session"
 import Registry from "@razzia/socket/services/registry"
 import rateLimit from "@fastify/rate-limit"
-import Fastify from "fastify"
+import fastify from "fastify"
 import { Server as ServerIO } from "socket.io"
 
 const isProduction = process.env.NODE_ENV === "production"
@@ -26,7 +26,7 @@ const start = async () => {
   getDb()
   initConfig()
 
-  const app = Fastify({ logger: false })
+  const app = fastify({ logger: false })
 
   // Tolerate empty bodies on JSON POSTs (e.g. /api/auth/login/options),
   // which Fastify's default parser otherwise rejects with 400.
@@ -39,6 +39,7 @@ const start = async () => {
 
         return
       }
+
       try {
         done(null, JSON.parse(body as string))
       } catch (err) {
@@ -59,10 +60,12 @@ const start = async () => {
     const status = (err as { statusCode?: number }).statusCode ?? 500
     const isClientError = status >= 400 && status < 500
     const safeToExpose = !isProduction || isClientError
+    const message = err instanceof Error ? err.message : "errors:unexpected"
+    const name = err instanceof Error ? err.name : "InternalServerError"
 
     reply.code(status).send({
-      error: safeToExpose ? err.message : "errors:unexpected",
-      name: safeToExpose ? err.name : "InternalServerError",
+      error: safeToExpose ? message : "errors:unexpected",
+      name: safeToExpose ? name : "InternalServerError",
     })
   })
 
@@ -89,7 +92,8 @@ const start = async () => {
   io.use((socket, next) => {
     const cookies = parseCookies(socket.handshake.headers.cookie)
     socket.data.user = resolveSession(cookies[SESSION_COOKIE])
-    socket.data.clientId = (socket.handshake.auth.clientId as string) ?? ""
+    socket.data.clientId =
+      (socket.handshake.auth.clientId as string | undefined) ?? ""
     next()
   })
 
@@ -105,7 +109,9 @@ const start = async () => {
       `Connected: socketId=${socket.id}, user=${socket.data.user?.username ?? "anon"}`,
     )
 
-    socketHandlers.forEach((handler) => handler({ io, socket }))
+    socketHandlers.forEach((handler) => {
+      handler({ io, socket })
+    })
   })
 
   await app.listen({ port: PORT, host: "0.0.0.0" })
@@ -121,7 +127,7 @@ const start = async () => {
   process.on("SIGTERM", shutdown)
 }
 
-start().catch((error) => {
+start().catch((error: unknown) => {
   console.error("Fatal startup error:", error)
   process.exit(1)
 })
