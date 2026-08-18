@@ -96,7 +96,9 @@ export class RoundManager {
     this.opts.io.to(this.opts.gameId).emit(EVENTS.GAME.START_COOLDOWN)
     await this.opts.cooldown.start(3)
 
-    void this.newQuestion()
+    void this.newQuestion().catch((error: unknown) => {
+      console.error("Round manager error:", error)
+    })
   }
 
   async newQuestion(): Promise<void> {
@@ -254,6 +256,18 @@ export class RoundManager {
       return
     }
 
+    // The payload is client-controlled and only typed as number[] at compile
+    // time. A non-array (or non-numeric entries) would later blow up the
+    // scoring/aggregation pass — which runs off the cooldown promise chain,
+    // outside any handler try/catch — and crash the process. Drop anything
+    // that isn't a clean array of finite numbers.
+    if (
+      !Array.isArray(answerIds) ||
+      !answerIds.every((id) => Number.isFinite(id))
+    ) {
+      return
+    }
+
     if (this.playersAnswers.find((a) => a.playerId === socket.id)) {
       return
     }
@@ -304,7 +318,9 @@ export class RoundManager {
     }
 
     this.currentQuestion += 1
-    void this.newQuestion()
+    void this.newQuestion().catch((error: unknown) => {
+      console.error("Round manager error:", error)
+    })
   }
 
   abortQuestion(socket: Socket): void {

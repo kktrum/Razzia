@@ -31,7 +31,10 @@ const AdminConsole = () => {
     // oxlint-disable-next-line
   }, [user])
 
-  const refresh = () => listUsers().then(setUsers).catch(() => setUsers([]))
+  const refresh = () =>
+    listUsers()
+      .then(setUsers)
+      .catch(() => setUsers([]))
 
   useEffect(() => {
     refresh()
@@ -48,7 +51,9 @@ const AdminConsole = () => {
   }
 
   const handleRole = (u: PublicUser) =>
-    guard(() => updateUser(u.id, { role: u.role === "admin" ? "manager" : "admin" }))
+    guard(() =>
+      updateUser(u.id, { role: u.role === "admin" ? "manager" : "admin" }),
+    )
 
   const handleDisabled = (u: PublicUser) =>
     guard(() => updateUser(u.id, { disabled: !u.disabled }))
@@ -106,7 +111,11 @@ const AdminConsole = () => {
         {invite && (
           <div className="border-border mt-3 flex items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2">
             <code className="text-foreground truncate text-sm">{invite}</code>
-            <button onClick={copyInvite} type="button" aria-label={t("manager:admin.copy")}>
+            <button
+              onClick={copyInvite}
+              type="button"
+              aria-label={t("manager:admin.copy")}
+            >
               <Copy className="text-muted-foreground size-4" />
             </button>
           </div>
@@ -117,9 +126,12 @@ const AdminConsole = () => {
         <h2 className="text-foreground mb-3 font-semibold">
           {t("manager:admin.users")}
         </h2>
-        <ul className="flex flex-col divide-y divide-border">
+        <ul className="divide-border flex flex-col divide-y">
           {users.map((u) => (
-            <li key={u.id} className="flex items-center justify-between gap-3 py-3">
+            <li
+              key={u.id}
+              className="flex items-center justify-between gap-3 py-3"
+            >
               <div className="min-w-0">
                 <p className="text-foreground truncate font-medium">
                   {u.displayName}
@@ -129,7 +141,9 @@ const AdminConsole = () => {
                     </span>
                   )}
                 </p>
-                <p className="text-muted-foreground truncate text-sm">@{u.username}</p>
+                <p className="text-muted-foreground truncate text-sm">
+                  @{u.username}
+                </p>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -147,7 +161,9 @@ const AdminConsole = () => {
                   disabled={u.id === user?.id}
                   type="button"
                 >
-                  {u.disabled ? t("manager:admin.enable") : t("manager:admin.disable")}
+                  {u.disabled
+                    ? t("manager:admin.enable")
+                    : t("manager:admin.disable")}
                 </button>
                 <button
                   className="hover:bg-destructive/10 text-destructive rounded-md p-1.5"

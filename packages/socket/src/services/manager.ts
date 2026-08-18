@@ -85,9 +85,7 @@ class Manager {
   }
 }
 
-export const permissionOn = (
-  user: User,
-  quizId: string,
-): Permission | null => effectivePermission(user, quizId)
+export const permissionOn = (user: User, quizId: string): Permission | null =>
+  effectivePermission(user, quizId)
 
 export default new Manager()
