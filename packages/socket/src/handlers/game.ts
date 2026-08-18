@@ -7,7 +7,7 @@ import manager from "@razzia/socket/services/manager"
 import Registry from "@razzia/socket/services/registry"
 import { isRateLimited } from "@razzia/socket/utils/rate-limit"
 import { withGame } from "@razzia/socket/utils/game"
-import { getClientId } from "@razzia/socket/utils/socket"
+import { getClientId, safeOn } from "@razzia/socket/utils/socket"
 
 export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
   const registry = Registry.getInstance()
@@ -47,29 +47,35 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
     game.setPlayerDisconnected(socket.id)
   }
 
-  socket.on(EVENTS.PLAYER.RECONNECT, ({ gameId }) => {
-    const game = registry.getPlayerGame(gameId, clientId)
+  socket.on(
+    EVENTS.PLAYER.RECONNECT,
+    safeOn(({ gameId }) => {
+      const game = registry.getPlayerGame(gameId, clientId)
 
-    if (game) {
-      game.reconnect(socket)
+      if (game) {
+        game.reconnect(socket)
 
-      return
-    }
+        return
+      }
 
-    socket.emit(EVENTS.GAME.RESET, "errors:game.notFound")
-  })
+      socket.emit(EVENTS.GAME.RESET, "errors:game.notFound")
+    }),
+  )
 
-  socket.on(EVENTS.MANAGER.RECONNECT, ({ gameId }) => {
-    const game = registry.getManagerGame(gameId, clientId)
+  socket.on(
+    EVENTS.MANAGER.RECONNECT,
+    safeOn(({ gameId }) => {
+      const game = registry.getManagerGame(gameId, clientId)
 
-    if (game) {
-      game.reconnect(socket)
+      if (game) {
+        game.reconnect(socket)
 
-      return
-    }
+        return
+      }
 
-    socket.emit(EVENTS.GAME.RESET, "errors:game.expired")
-  })
+      socket.emit(EVENTS.GAME.RESET, "errors:game.expired")
+    }),
+  )
 
   socket.on(
     EVENTS.GAME.CREATE,
@@ -140,52 +146,79 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
     socket.emit(EVENTS.GAME.SUCCESS_ROOM, game.gameId)
   })
 
-  socket.on(EVENTS.PLAYER.LOGIN, ({ gameId, data }) =>
-    withGame(gameId, socket, (game) => game.join(socket, data.username)),
-  )
-
-  socket.on(EVENTS.MANAGER.KICK_PLAYER, ({ gameId, playerId }) =>
-    withGame(gameId, socket, (game) => game.kickPlayer(socket, playerId)),
-  )
-
-  socket.on(EVENTS.MANAGER.START_GAME, ({ gameId }) =>
-    withGame(gameId, socket, (game) => game.start(socket)),
-  )
-
-  socket.on(EVENTS.PLAYER.SELECTED_ANSWER, ({ gameId, data }) =>
-    withGame(gameId, socket, (game) =>
-      game.selectAnswer(socket, data.answerKeys),
+  socket.on(
+    EVENTS.PLAYER.LOGIN,
+    safeOn(({ gameId, data }) =>
+      withGame(gameId, socket, (game) => game.join(socket, data.username)),
     ),
   )
 
-  socket.on(EVENTS.MANAGER.ABORT_QUIZ, ({ gameId }) =>
-    withGame(gameId, socket, (game) => game.abortRound(socket)),
+  socket.on(
+    EVENTS.MANAGER.KICK_PLAYER,
+    safeOn(({ gameId, playerId }) =>
+      withGame(gameId, socket, (game) => game.kickPlayer(socket, playerId)),
+    ),
   )
 
-  socket.on(EVENTS.MANAGER.NEXT_QUESTION, ({ gameId }) =>
-    withGame(gameId, socket, (game) => game.nextRound(socket)),
+  socket.on(
+    EVENTS.MANAGER.START_GAME,
+    safeOn(({ gameId }) =>
+      withGame(gameId, socket, (game) => game.start(socket)),
+    ),
   )
 
-  socket.on(EVENTS.MANAGER.SHOW_LEADERBOARD, ({ gameId }) =>
-    withGame(gameId, socket, (game) => game.showLeaderboard(socket)),
+  socket.on(
+    EVENTS.PLAYER.SELECTED_ANSWER,
+    safeOn(({ gameId, data }) =>
+      withGame(gameId, socket, (game) =>
+        game.selectAnswer(socket, data.answerKeys),
+      ),
+    ),
   )
 
-  socket.on(EVENTS.MANAGER.LEAVE, ({ gameId }) => {
-    const game = registry.getManagerGame(gameId, clientId)
+  socket.on(
+    EVENTS.MANAGER.ABORT_QUIZ,
+    safeOn(({ gameId }) =>
+      withGame(gameId, socket, (game) => game.abortRound(socket)),
+    ),
+  )
 
-    if (game) {
-      console.log(`Manager left game ${game.inviteCode}`)
-      handleManagerLeave(game)
-    }
-  })
+  socket.on(
+    EVENTS.MANAGER.NEXT_QUESTION,
+    safeOn(({ gameId }) =>
+      withGame(gameId, socket, (game) => game.nextRound(socket)),
+    ),
+  )
 
-  socket.on(EVENTS.PLAYER.LEAVE, ({ gameId }) => {
-    const game = registry.getPlayerGame(gameId, clientId)
+  socket.on(
+    EVENTS.MANAGER.SHOW_LEADERBOARD,
+    safeOn(({ gameId }) =>
+      withGame(gameId, socket, (game) => game.showLeaderboard(socket)),
+    ),
+  )
 
-    if (game) {
-      handlePlayerLeave(game)
-    }
-  })
+  socket.on(
+    EVENTS.MANAGER.LEAVE,
+    safeOn(({ gameId }) => {
+      const game = registry.getManagerGame(gameId, clientId)
+
+      if (game) {
+        console.log(`Manager left game ${game.inviteCode}`)
+        handleManagerLeave(game)
+      }
+    }),
+  )
+
+  socket.on(
+    EVENTS.PLAYER.LEAVE,
+    safeOn(({ gameId }) => {
+      const game = registry.getPlayerGame(gameId, clientId)
+
+      if (game) {
+        handlePlayerLeave(game)
+      }
+    }),
+  )
 
   socket.on("disconnect", () => {
     console.log(`A user disconnected : ${socket.id}`)
