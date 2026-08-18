@@ -4,7 +4,7 @@ import Input from "@razzia/web/components/Input"
 import { login, register } from "@razzia/web/features/auth/api"
 import type { PublicUser } from "@razzia/common/types/user"
 import { Fingerprint, KeyRound, UserPlus } from "lucide-react"
-import { type FormEvent, useState } from "react"
+import { type SubmitEvent, useState } from "react"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 
@@ -58,7 +58,7 @@ const ManagerAuth = ({ onAuthed }: Props) => {
 
   const handleLogin = () => run(login)
 
-  const handleRegister = (event: FormEvent) => {
+  const handleRegister = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!invite.trim() || !username.trim()) {
@@ -86,17 +86,15 @@ const ManagerAuth = ({ onAuthed }: Props) => {
           {t("auth:title")}
         </h1>
         <p className="text-muted-foreground text-sm">
-          {mode === "login" ? t("auth:loginSubtitle") : t("auth:registerSubtitle")}
+          {mode === "login"
+            ? t("auth:loginSubtitle")
+            : t("auth:registerSubtitle")}
         </p>
       </div>
 
       {mode === "login" ? (
         <div className="mt-6 flex flex-col gap-3">
-          <Button
-            className="w-full"
-            onClick={handleLogin}
-            disabled={busy}
-          >
+          <Button className="w-full" onClick={handleLogin} disabled={busy}>
             <KeyRound className="size-5" />
             {t("auth:signIn")}
           </Button>

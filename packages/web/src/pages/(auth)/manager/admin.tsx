@@ -1,4 +1,5 @@
 import type { PublicUser, Role } from "@razzia/common/types/user"
+import AlertDialog from "@razzia/web/components/AlertDialog"
 import Button from "@razzia/web/components/Button"
 import Card from "@razzia/web/components/Card"
 import Loader from "@razzia/web/components/Loader"
@@ -31,7 +32,10 @@ const AdminConsole = () => {
     // oxlint-disable-next-line
   }, [user])
 
-  const refresh = () => listUsers().then(setUsers).catch(() => setUsers([]))
+  const refresh = () =>
+    listUsers()
+      .then(setUsers)
+      .catch(() => setUsers([]))
 
   useEffect(() => {
     refresh()
@@ -48,18 +52,14 @@ const AdminConsole = () => {
   }
 
   const handleRole = (u: PublicUser) =>
-    guard(() => updateUser(u.id, { role: u.role === "admin" ? "manager" : "admin" }))
+    guard(() =>
+      updateUser(u.id, { role: u.role === "admin" ? "manager" : "admin" }),
+    )
 
   const handleDisabled = (u: PublicUser) =>
     guard(() => updateUser(u.id, { disabled: !u.disabled }))
 
-  const handleDelete = (u: PublicUser) => {
-    if (!confirm(t("manager:admin.confirmDelete", { name: u.displayName }))) {
-      return
-    }
-
-    guard(() => deleteUser(u.id))
-  }
+  const handleDelete = (u: PublicUser) => guard(() => deleteUser(u.id))
 
   const handleInvite = async () => {
     try {
@@ -106,7 +106,11 @@ const AdminConsole = () => {
         {invite && (
           <div className="border-border mt-3 flex items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2">
             <code className="text-foreground truncate text-sm">{invite}</code>
-            <button onClick={copyInvite} type="button" aria-label={t("manager:admin.copy")}>
+            <button
+              onClick={copyInvite}
+              type="button"
+              aria-label={t("manager:admin.copy")}
+            >
               <Copy className="text-muted-foreground size-4" />
             </button>
           </div>
@@ -117,9 +121,12 @@ const AdminConsole = () => {
         <h2 className="text-foreground mb-3 font-semibold">
           {t("manager:admin.users")}
         </h2>
-        <ul className="flex flex-col divide-y divide-border">
+        <ul className="divide-border flex flex-col divide-y">
           {users.map((u) => (
-            <li key={u.id} className="flex items-center justify-between gap-3 py-3">
+            <li
+              key={u.id}
+              className="flex items-center justify-between gap-3 py-3"
+            >
               <div className="min-w-0">
                 <p className="text-foreground truncate font-medium">
                   {u.displayName}
@@ -129,7 +136,9 @@ const AdminConsole = () => {
                     </span>
                   )}
                 </p>
-                <p className="text-muted-foreground truncate text-sm">@{u.username}</p>
+                <p className="text-muted-foreground truncate text-sm">
+                  @{u.username}
+                </p>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -147,17 +156,28 @@ const AdminConsole = () => {
                   disabled={u.id === user?.id}
                   type="button"
                 >
-                  {u.disabled ? t("manager:admin.enable") : t("manager:admin.disable")}
+                  {u.disabled
+                    ? t("manager:admin.enable")
+                    : t("manager:admin.disable")}
                 </button>
-                <button
-                  className="hover:bg-destructive/10 text-destructive rounded-md p-1.5"
-                  onClick={() => handleDelete(u)}
-                  disabled={u.id === user?.id}
-                  type="button"
-                  aria-label={t("manager:admin.delete")}
-                >
-                  <Trash2 className="size-4" />
-                </button>
+                <AlertDialog
+                  trigger={
+                    <button
+                      className="hover:bg-destructive/10 text-destructive rounded-md p-1.5"
+                      disabled={u.id === user?.id}
+                      type="button"
+                      aria-label={t("manager:admin.delete")}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  }
+                  title={t("manager:admin.delete")}
+                  description={t("manager:admin.confirmDelete", {
+                    name: u.displayName,
+                  })}
+                  confirmLabel={t("common:delete")}
+                  onConfirm={() => handleDelete(u)}
+                />
               </div>
             </li>
           ))}

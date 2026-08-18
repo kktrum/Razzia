@@ -18,7 +18,7 @@ const ManagerConfigPage = () => {
   const { setGameId, setStatus, setConfig, config } = useManagerStore()
   const { user, setUser } = useAuthStore()
   const navigate = useNavigate()
-  const [probed, setProbed] = useState(!!user)
+  const [probed, setProbed] = useState(Boolean(user))
 
   // Belt-and-suspenders: the auth store can still be empty here if the session
   // probe on /manager lost the race against the socket CONFIG event. Re-probe
@@ -27,6 +27,7 @@ const ManagerConfigPage = () => {
   useEffect(() => {
     if (user) {
       setProbed(true)
+
       return
     }
 
