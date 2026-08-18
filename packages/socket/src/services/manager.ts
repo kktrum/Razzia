@@ -1,7 +1,6 @@
 import { EVENTS } from "@razzia/common/constants"
 import type { Socket } from "@razzia/common/types/game/socket"
 import type { Permission, User } from "@razzia/common/types/user"
-import type { SocketContext } from "@razzia/socket/handlers/types"
 import { getQuizzMeta, getResultsMeta } from "@razzia/socket/services/config"
 import { AuthzError, effectivePermission } from "@razzia/socket/services/authz"
 
@@ -11,7 +10,7 @@ import { AuthzError, effectivePermission } from "@razzia/socket/services/authz"
  *  - managers see owned + shared quizzes and their own results
  */
 export const emitConfig = (socket: Socket) => {
-  const user = socket.data.user
+  const { user } = socket.data
 
   if (!user) {
     socket.emit(EVENTS.MANAGER.UNAUTHORIZED)
@@ -25,69 +24,60 @@ export const emitConfig = (socket: Socket) => {
   })
 }
 
-class Manager {
-  /** Resolves the authenticated user attached by the handshake middleware. */
-  getUser(socket: Socket): User | null {
-    return socket.data.user ?? null
+/** Resolves the authenticated user attached by the handshake middleware. */
+const getUser = (socket: Socket): User | null => socket.data.user ?? null
+
+const isLogged = (socket: Socket): boolean => Boolean(socket.data.user)
+
+const handleError = (socket: Socket, error: unknown) => {
+  if (error instanceof AuthzError) {
+    socket.emit(EVENTS.MANAGER.UNAUTHORIZED)
+
+    return
   }
 
-  isLogged(socket: Socket): boolean {
-    return Boolean(socket.data.user)
-  }
+  console.error("Manager handler error:", error)
+  socket.emit(EVENTS.MANAGER.ERROR_MESSAGE, "errors:unexpected")
+}
 
-  /** Gate a handler on an authenticated (any-role) user. */
-  withAuth<T extends unknown[]>(
+/** Gate a handler on an authenticated (any-role) user. */
+const withAuth =
+  <T extends unknown[]>(
     socket: Socket,
     handler: (_user: User, ..._args: T) => void,
-  ) {
-    return (..._args: T) => {
-      const user = this.getUser(socket)
+  ) =>
+  (..._args: T) => {
+    const user = getUser(socket)
 
-      if (!user) {
-        socket.emit(EVENTS.MANAGER.UNAUTHORIZED)
-
-        return
-      }
-
-      try {
-        handler(user, ..._args)
-      } catch (error) {
-        this.handleError(socket, error)
-      }
-    }
-  }
-
-  /** Gate a handler on the admin role. */
-  withAdmin<T extends unknown[]>(
-    socket: Socket,
-    handler: (_user: User, ..._args: T) => void,
-  ) {
-    return this.withAuth(socket, (user, ..._args: T) => {
-      if (user.role !== "admin") {
-        socket.emit(EVENTS.MANAGER.UNAUTHORIZED)
-
-        return
-      }
-
-      handler(user, ..._args)
-    })
-  }
-
-  private handleError(socket: Socket, error: unknown) {
-    if (error instanceof AuthzError) {
+    if (!user) {
       socket.emit(EVENTS.MANAGER.UNAUTHORIZED)
 
       return
     }
 
-    console.error("Manager handler error:", error)
-    socket.emit(EVENTS.MANAGER.ERROR_MESSAGE, "errors:unexpected")
+    try {
+      handler(user, ..._args)
+    } catch (error) {
+      handleError(socket, error)
+    }
   }
-}
 
-export const permissionOn = (
-  user: User,
-  quizId: string,
-): Permission | null => effectivePermission(user, quizId)
+/** Gate a handler on the admin role. */
+const withAdmin = <T extends unknown[]>(
+  socket: Socket,
+  handler: (_user: User, ..._args: T) => void,
+) =>
+  withAuth(socket, (user, ..._args: T) => {
+    if (user.role !== "admin") {
+      socket.emit(EVENTS.MANAGER.UNAUTHORIZED)
 
-export default new Manager()
+      return
+    }
+
+    handler(user, ..._args)
+  })
+
+export const permissionOn = (user: User, quizId: string): Permission | null =>
+  effectivePermission(user, quizId)
+
+export default { getUser, isLogged, withAuth, withAdmin }

@@ -18,7 +18,6 @@ import {
   assertIsOwnerOrAdmin,
 } from "@razzia/socket/services/authz"
 import fs from "fs"
-import { nanoid } from "nanoid"
 import { resolve } from "path"
 
 const inContainerPath = process.env.CONFIG_PATH
@@ -57,11 +56,16 @@ const toQuizzWithId = (row: {
 export const getQuizzMeta = (user: User): QuizzMeta[] => {
   const nameCache = new Map<string, string>()
   const ownerName = (ownerId: string): string => {
-    if (!nameCache.has(ownerId)) {
-      nameCache.set(ownerId, usersRepo.byId(ownerId)?.displayName ?? "unknown")
+    const cached = nameCache.get(ownerId)
+
+    if (cached !== undefined) {
+      return cached
     }
 
-    return nameCache.get(ownerId) as string
+    const name = usersRepo.byId(ownerId)?.displayName ?? "unknown"
+    nameCache.set(ownerId, name)
+
+    return name
   }
 
   if (user.role === "admin") {
@@ -156,7 +160,11 @@ export const cloneQuizz = (id: string, user: User): { id: string } => {
 
 /* ------------------------------ Results ---------------------------- */
 
-export const saveResult = (data: GameResult, ownerId: string, quizId: string | null) => {
+export const saveResult = (
+  data: GameResult,
+  ownerId: string,
+  quizId: string | null,
+) => {
   try {
     resultsRepo.create({
       id: data.id,

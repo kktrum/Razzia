@@ -1,4 +1,5 @@
 import { EVENTS } from "@razzia/common/constants"
+import type { QuizzWithId } from "@razzia/common/types/game"
 import { inviteCodeValidator } from "@razzia/common/validators/auth"
 import type { SocketContext } from "@razzia/socket/handlers/types"
 import { getQuizzById } from "@razzia/socket/services/config"
@@ -74,7 +75,7 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
   socket.on(
     EVENTS.GAME.CREATE,
     manager.withAuth(socket, (user, quizzId: string) => {
-      let quizz
+      let quizz: QuizzWithId | undefined = undefined
 
       try {
         // Enforces run/view access (owner, shared-run, or admin).
@@ -85,7 +86,7 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
         return
       }
 
-      const game = new Game(io, socket, quizz, user.id)
+      const game = new Game({ io, socket, quizz, ownerUserId: user.id })
       registry.addGame(game)
     }),
   )

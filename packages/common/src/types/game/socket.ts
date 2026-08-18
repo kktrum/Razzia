@@ -10,7 +10,7 @@ import type { ManagerConfig } from "@razzia/common/types/manager"
 import type { User } from "@razzia/common/types/user"
 import { Server as ServerIO, Socket as SocketIO } from "socket.io"
 
-export interface InterServerEvents {}
+export type InterServerEvents = Record<string, never>
 
 /** Per-connection server state populated by the session handshake middleware. */
 export interface SocketData {
