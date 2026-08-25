@@ -44,5 +44,10 @@
     "description": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
     "title": "Algo salió mal"
   },
-  "unexpected": "Ocurrió un error inesperado"
+  "unexpected": "Ocurrió un error inesperado",
+  "admin": {
+    "cannotDeleteSelf": "No puedes eliminar tu propia cuenta",
+    "cannotDemoteSelf": "No puedes degradar tu propia cuenta",
+    "cannotDisableSelf": "No puedes desactivar tu propia cuenta"
+  }
 }

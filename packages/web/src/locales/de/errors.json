@@ -44,5 +44,10 @@
     "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
     "title": "Etwas ist schiefgelaufen"
   },
-  "unexpected": "Ein unerwarteter Fehler ist aufgetreten"
+  "unexpected": "Ein unerwarteter Fehler ist aufgetreten",
+  "admin": {
+    "cannotDeleteSelf": "Du kannst dein eigenes Konto nicht löschen",
+    "cannotDemoteSelf": "Du kannst dein eigenes Konto nicht herabstufen",
+    "cannotDisableSelf": "Du kannst dein eigenes Konto nicht deaktivieren"
+  }
 }

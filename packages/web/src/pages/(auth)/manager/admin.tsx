@@ -7,6 +7,7 @@ import {
   createInvite,
   deleteUser,
   listUsers,
+  me,
   updateUser,
 } from "@razzia/web/features/auth/api"
 import { useAuthStore } from "@razzia/web/features/auth/store"
@@ -19,10 +20,40 @@ import { useTranslation } from "react-i18next"
 const AdminConsole = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user, isAdmin } = useAuthStore()
+  const { user, isAdmin, setUser } = useAuthStore()
   const [users, setUsers] = useState<PublicUser[] | null>(null)
   const [inviteRole, setInviteRole] = useState<Role>("manager")
   const [invite, setInvite] = useState("")
+  const [probed, setProbed] = useState(Boolean(user))
+
+  // Nothing in the app links to /manager/admin, so every real visit is a
+  // cold full page load and the in-memory auth store is empty. Probe the
+  // session so the admin-only guard below, and the self-protection
+  // `disabled` checks on the role/disable/delete controls, never evaluate
+  // against a null user.
+  useEffect(() => {
+    if (user) {
+      setProbed(true)
+
+      return
+    }
+
+    let active = true
+
+    me().then((existing) => {
+      if (existing) {
+        setUser(existing)
+      }
+
+      if (active) {
+        setProbed(true)
+      }
+    })
+
+    return () => {
+      active = false
+    }
+  }, [user, setUser])
 
   useEffect(() => {
     // Guard: only admins may see this console.
@@ -75,7 +106,7 @@ const AdminConsole = () => {
     toast.success(t("manager:admin.inviteCopied"))
   }
 
-  if (!users) {
+  if (!probed || !users) {
     return <Loader className="h-23" />
   }
 
