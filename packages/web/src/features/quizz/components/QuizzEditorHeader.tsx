@@ -63,7 +63,7 @@ const QuizzEditorHeader = () => {
   })
 
   return (
-    <header className="bg-background z-20 flex h-14 items-center justify-between gap-4 px-4 shadow-sm">
+    <header className="bg-background z-chrome flex h-14 items-center justify-between gap-4 px-4 shadow-sm">
       <div className="flex items-center gap-6">
         <Input
           variant="sm"
@@ -78,7 +78,7 @@ const QuizzEditorHeader = () => {
         {canDelete && (
           <AlertDialog
             trigger={
-              <Button className="text-md flex items-center gap-2 bg-red-500 px-4 py-2 font-semibold text-white hover:brightness-95 active:brightness-90">
+              <Button className="flex items-center gap-2 bg-red-500 px-4 py-2 font-semibold text-white hover:brightness-95 active:brightness-90">
                 <Trash2 className="size-4" />
                 {t("manager:quizz.delete")}
               </Button>
@@ -90,12 +90,12 @@ const QuizzEditorHeader = () => {
           />
         )}
         <Button
-          className="text-md bg-accent text-accent-foreground px-4 py-2 font-semibold"
+          className="bg-accent text-accent-foreground px-4 py-2 font-semibold"
           onClick={() => navigate({ to: "/manager" })}
         >
           {t("common:exit")}
         </Button>
-        <Button className="bg-primary text-md px-4 py-2" onClick={handleSave}>
+        <Button className="bg-primary px-4 py-2" onClick={handleSave}>
           {t("common:save")}
         </Button>
       </div>

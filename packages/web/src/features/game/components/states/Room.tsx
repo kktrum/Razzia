@@ -96,10 +96,10 @@ const Room = ({ data: { text, inviteCode } }: Props) => {
           </AlertDialog.Trigger>
 
           <AlertDialog.Portal>
-            <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
+            <AlertDialog.Overlay className="z-overlay fixed inset-0 bg-black/70" />
             <AlertDialog.Content
               ref={qrContentRef}
-              className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6"
+              className="z-modal fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6"
             >
               <button
                 onClick={handleCloseQrCode}

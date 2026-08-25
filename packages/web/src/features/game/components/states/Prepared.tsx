@@ -24,7 +24,7 @@ const Prepared = ({ data: { totalAnswers, questionNumber } }: Props) => {
           <div
             key={key}
             className={clsx(
-              "button shadow-inset flex aspect-square h-full w-full items-center justify-center rounded-2xl",
+              "button flex aspect-square h-full w-full items-center justify-center rounded-2xl",
               ANSWERS_COLORS[key],
             )}
           >

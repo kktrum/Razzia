@@ -114,7 +114,7 @@ const QuizzEditorSidebar = () => {
   }
 
   return (
-    <aside className="bg-background z-10 m-3 flex w-72 shrink-0 flex-col gap-2 overflow-auto rounded-xl p-3 shadow-sm">
+    <aside className="bg-background z-content m-3 flex w-72 shrink-0 flex-col gap-2 overflow-auto rounded-xl p-3 shadow-sm">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -146,7 +146,7 @@ const QuizzEditorSidebar = () => {
 
       <Button
         onClick={addQuestion}
-        className="bg text-md bg-accent text-accent-foreground mt-1 mb-8 flex items-center justify-center gap-1"
+        className="bg-accent text-accent-foreground mt-1 mb-8 flex items-center justify-center gap-1"
       >
         <Plus className="size-6" />
         {t("quizz:addQuestion")}

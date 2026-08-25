@@ -6,7 +6,7 @@ import {
   useSocket,
 } from "@razzia/web/features/game/contexts/socket-context"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { useEffect } from "react"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
@@ -34,6 +34,12 @@ const PlayerAuthPage = () => {
     <>
       <Room />
       <Reconnect />
+      <Link
+        to="/manager"
+        className="text-accent-foreground hover:text-foreground mt-6 text-sm"
+      >
+        {t("common:managerLogin")}
+      </Link>
     </>
   )
 }

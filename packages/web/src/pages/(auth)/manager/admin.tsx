@@ -1,4 +1,5 @@
 import type { PublicUser, Role } from "@razzia/common/types/user"
+import AlertDialog from "@razzia/web/components/AlertDialog"
 import Button from "@razzia/web/components/Button"
 import Card from "@razzia/web/components/Card"
 import Loader from "@razzia/web/components/Loader"
@@ -58,13 +59,7 @@ const AdminConsole = () => {
   const handleDisabled = (u: PublicUser) =>
     guard(() => updateUser(u.id, { disabled: !u.disabled }))
 
-  const handleDelete = (u: PublicUser) => {
-    if (!confirm(t("manager:admin.confirmDelete", { name: u.displayName }))) {
-      return
-    }
-
-    guard(() => deleteUser(u.id))
-  }
+  const handleDelete = (u: PublicUser) => guard(() => deleteUser(u.id))
 
   const handleInvite = async () => {
     try {
@@ -165,15 +160,24 @@ const AdminConsole = () => {
                     ? t("manager:admin.enable")
                     : t("manager:admin.disable")}
                 </button>
-                <button
-                  className="hover:bg-destructive/10 text-destructive rounded-md p-1.5"
-                  onClick={() => handleDelete(u)}
-                  disabled={u.id === user?.id}
-                  type="button"
-                  aria-label={t("manager:admin.delete")}
-                >
-                  <Trash2 className="size-4" />
-                </button>
+                <AlertDialog
+                  trigger={
+                    <button
+                      className="hover:bg-destructive/10 text-destructive rounded-md p-1.5"
+                      disabled={u.id === user?.id}
+                      type="button"
+                      aria-label={t("manager:admin.delete")}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  }
+                  title={t("manager:admin.delete")}
+                  description={t("manager:admin.confirmDelete", {
+                    name: u.displayName,
+                  })}
+                  confirmLabel={t("common:delete")}
+                  onConfirm={() => handleDelete(u)}
+                />
               </div>
             </li>
           ))}

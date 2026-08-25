@@ -11,7 +11,7 @@ const QuestionEditorTitle = () => {
   }
 
   return (
-    <div className="bg-background z-10 rounded-xl shadow-sm">
+    <div className="bg-background z-content rounded-xl shadow-sm">
       <input
         className="placeholder:text-muted-foreground text-foreground w-full resize-none p-4 text-center text-xl font-semibold outline-none"
         placeholder={t("quizz:question.placeholder")}

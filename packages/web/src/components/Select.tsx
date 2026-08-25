@@ -49,7 +49,7 @@ export const SelectContent = ({
       sideOffset={4}
       className={twMerge(
         clsx(
-          "border-accent bg-background z-50 w-(--radix-select-trigger-width) overflow-hidden rounded-lg border shadow-md",
+          "border-accent bg-background z-modal w-(--radix-select-trigger-width) overflow-hidden rounded-lg border shadow-md",
           className,
         ),
       )}

@@ -1,3 +1,4 @@
+import { DialogTitle } from "@razzia/web/components/Dialog"
 import { useResultModal } from "@razzia/web/features/manager/contexts/result-modal-context"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -9,9 +10,9 @@ const ResultModalHeader = () => {
 
   return (
     <div className="border-accent flex shrink-0 items-center gap-3 border-b-2 px-5 py-3">
-      <h2 className="text-foreground flex-1 truncate text-base font-bold">
+      <DialogTitle className="text-foreground flex-1 truncate text-base font-bold">
         {result.subject}
-      </h2>
+      </DialogTitle>
       <div className="flex shrink-0 items-center gap-1">
         <span className="text-muted-foreground text-sm">
           {questionIndex + 1}
