@@ -36,8 +36,16 @@ const Reconnect = () => {
     socket.emit(EVENTS.PLAYER.CHECK_PIN, savedPin)
   }, [isConnected, savedPin, socket])
 
-  useEvent(EVENTS.PLAYER.CHECK_PIN_RESULT, ({ valid }) => {
+  useEvent(EVENTS.PLAYER.CHECK_PIN_RESULT, ({ valid, throttled }) => {
     setIsChecking(false)
+
+    // A throttled check never reached the game registry, so `valid: false`
+    // only means "unknown" — keep the PIN and let the player retry.
+    if (throttled) {
+      hasCheckedRef.current = false
+
+      return
+    }
 
     if (!valid) {
       localStorage.removeItem("game_pin")

@@ -71,7 +71,11 @@ export interface ServerToClientEvents {
   [EVENTS.GAME.PLAYER_ANSWER]: (_count: number) => void
 
   // Player events
-  [EVENTS.PLAYER.CHECK_PIN_RESULT]: (_data: { valid: boolean }) => void
+  [EVENTS.PLAYER.CHECK_PIN_RESULT]: (_data: {
+    valid: boolean
+    /** The PIN was never looked up (rate limited) — `valid` says nothing. */
+    throttled?: boolean
+  }) => void
   [EVENTS.PLAYER.SUCCESS_RECONNECT]: (_data: {
     gameId: string
     status: { name: Status; data: StatusDataMap[Status] }

@@ -208,12 +208,20 @@ class Game {
       return
     }
 
-    if (player.connected) {
-      socket.emit(EVENTS.GAME.RESET, "errors:game.playerAlreadyConnected")
-
-      return
+    // A matching clientId means this is the same browser. When a flaky
+    // connection drops, the client often reconnects before the server has
+    // processed the old socket's disconnect, so the slot still reads as
+    // connected — refusing here would bounce a legitimate player out of their
+    // own game. Hand the slot to the new socket and evict the stale one
+    // (a no-op if it is already gone; a duplicate tab is sent back home).
+    if (player.connected && player.id !== socket.id) {
+      this.io
+        .to(player.id)
+        .emit(EVENTS.GAME.RESET, "errors:game.playerAlreadyConnected")
+      this.io.in(player.id).socketsLeave(this.gameId)
     }
 
+    this.playerManager.cancelRemoval(clientId)
     socket.join(this.gameId)
 
     const oldSocketId = player.id
@@ -266,6 +274,36 @@ class Game {
   setPlayerDisconnected(socketId: string) {
     this.playerManager.setDisconnected(socketId)
     this.playerManager.broadcastCount()
+  }
+
+  /**
+   * A player's socket dropped without them asking to leave (network blip,
+   * phone locking, tab refresh). Hold their slot — in the lobby too — and only
+   * drop them if they fail to come back within the grace period.
+   */
+  handlePlayerDisconnect(socketId: string) {
+    if (!this.playerManager.findById(socketId)) {
+      return
+    }
+
+    this.setPlayerDisconnected(socketId)
+
+    if (this.started) {
+      return
+    }
+
+    this.playerManager.scheduleRemoval(socketId, (player) => {
+      this.removePlayer(player.id)
+      console.log(
+        `Player ${player.username} did not return to game ${this.inviteCode}`,
+      )
+    })
+  }
+
+  /** Releases pending timers when the game is torn down. */
+  dispose() {
+    this.playerManager.clearRemovals()
+    this.cooldown.abort()
   }
 
   // Game flow

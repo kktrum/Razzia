@@ -15,9 +15,18 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
 
   // Game PINs are only 6 digits (1e6 possibilities); without a throttle a
   // client can script-guess active PINs to hijack/disrupt someone else's
-  // game. Cap PIN-guessing attempts per remote address.
-  const pinGuessKey = `pin:${socket.handshake.address}`
-  const isPinGuessRateLimited = () => isRateLimited(pinGuessKey, 20, 60 * 1000)
+  // game.
+  //
+  // The primary bucket is keyed on the browser's clientId, NOT on the remote
+  // address: behind the bundled nginx (which proxies /ws from 127.0.0.1), any
+  // reverse proxy, or a venue's NAT, every player shares one address — so an
+  // address-keyed bucket is really one global bucket that a normal 20+ player
+  // room exhausts on legitimate joins alone, locking latecomers out.
+  // clientId is client-controlled, so a much looser per-address bucket stays
+  // as a backstop against an attacker rotating clientIds.
+  const isPinGuessRateLimited = () =>
+    isRateLimited(`pin:${clientId || socket.id}`, 10, 60 * 1000) ||
+    isRateLimited(`pin-addr:${socket.handshake.address}`, 600, 60 * 1000)
 
   const handleManagerLeave = (game: Game) => {
     game.setManagerDisconnected()
@@ -33,6 +42,9 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
     }
   }
 
+  // Deliberate exit (the player navigated away from the game): free the slot
+  // straight away in the lobby. An unannounced socket drop goes through
+  // game.handlePlayerDisconnect() instead, which holds the slot open.
   const handlePlayerLeave = (game: Game) => {
     if (!game.started) {
       const player = game.removePlayer(socket.id)
@@ -97,8 +109,13 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
   )
 
   socket.on(EVENTS.PLAYER.CHECK_PIN, (inviteCode) => {
+    // `throttled` keeps the client from mistaking "we didn't check" for
+    // "that PIN is dead" and discarding the player's saved PIN.
     if (isPinGuessRateLimited()) {
-      socket.emit(EVENTS.PLAYER.CHECK_PIN_RESULT, { valid: false })
+      socket.emit(EVENTS.PLAYER.CHECK_PIN_RESULT, {
+        valid: false,
+        throttled: true,
+      })
 
       return
     }
@@ -235,7 +252,7 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
     const playerGame = registry.getGameByPlayerSocketId(socket.id)
 
     if (playerGame) {
-      handlePlayerLeave(playerGame)
+      playerGame.handlePlayerDisconnect(socket.id)
     }
   })
 }
