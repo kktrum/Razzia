@@ -287,6 +287,14 @@ export const registerHttpRoutes = (app: FastifyInstance): void => {
     const { id } = req.params as { id: string }
     const body = req.body as { role?: "admin" | "manager"; disabled?: boolean }
 
+    if (id === user.id && body.role && body.role !== "admin") {
+      return reply.code(400).send({ error: "errors:admin.cannotDemoteSelf" })
+    }
+
+    if (id === user.id && body.disabled === true) {
+      return reply.code(400).send({ error: "errors:admin.cannotDisableSelf" })
+    }
+
     if (body.role) usersRepo.setRole(id, body.role)
     if (typeof body.disabled === "boolean")
       usersRepo.setDisabled(id, body.disabled)

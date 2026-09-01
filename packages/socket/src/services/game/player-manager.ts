@@ -4,11 +4,25 @@ import type { Server, Socket } from "@razzia/common/types/game/socket"
 import { usernameValidator } from "@razzia/common/validators/auth"
 import { getClientId } from "@razzia/socket/utils/socket"
 
+/**
+ * How long a player keeps their slot in a not-yet-started game after their
+ * socket drops. Mobile browsers tear the websocket down within ~30s of the
+ * screen locking, so without a grace period anyone who pockets their phone
+ * while waiting in the lobby is deleted from the game outright and bounced to
+ * the home screen ("game not found") when they come back.
+ */
+const LOBBY_GRACE_MS = 2 * 60 * 1000
+
 export class PlayerManager {
   private readonly io: Server
   private readonly gameId: string
   private readonly getManagerId: () => string
   private players: Player[] = []
+  /** Pending grace-period removals for dropped lobby players, by clientId. */
+  private readonly pendingRemovals = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >()
 
   constructor(io: Server, gameId: string, getManagerId: () => string) {
     this.io = io
@@ -64,6 +78,7 @@ export class PlayerManager {
       return false
     }
 
+    this.cancelRemoval(player.clientId)
     this.players = this.players.filter((p) => p.id !== playerId)
 
     this.io.in(playerId).socketsLeave(this.gameId)
@@ -83,9 +98,54 @@ export class PlayerManager {
       return undefined
     }
 
+    this.cancelRemoval(player.clientId)
     this.players = this.players.filter((p) => p.id !== socketId)
 
     return player
+  }
+
+  /**
+   * Runs `onExpire` if the player hasn't reconnected within the grace period.
+   * Call `cancelRemoval` on reconnect.
+   */
+  scheduleRemoval(socketId: string, onExpire: (_player: Player) => void): void {
+    const player = this.findById(socketId)
+
+    if (!player) {
+      return
+    }
+
+    this.cancelRemoval(player.clientId)
+
+    const timer = setTimeout(() => {
+      this.pendingRemovals.delete(player.clientId)
+
+      if (player.connected) {
+        return
+      }
+
+      onExpire(player)
+    }, LOBBY_GRACE_MS)
+
+    timer.unref()
+    this.pendingRemovals.set(player.clientId, timer)
+  }
+
+  cancelRemoval(clientId: string): void {
+    const timer = this.pendingRemovals.get(clientId)
+
+    if (timer) {
+      clearTimeout(timer)
+      this.pendingRemovals.delete(clientId)
+    }
+  }
+
+  clearRemovals(): void {
+    for (const timer of this.pendingRemovals.values()) {
+      clearTimeout(timer)
+    }
+
+    this.pendingRemovals.clear()
   }
 
   setDisconnected(socketId: string): void {

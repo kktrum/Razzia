@@ -10,13 +10,30 @@
 
   --color-background: var(--color-white);
 
+  --color-card: var(--color-white);
+  --color-card-foreground: var(--color-gray-700);
+
   --color-muted: var(--color-gray-100);
   --color-muted-foreground: var(--color-gray-500);
+  --color-border: var(--color-gray-200);
   --color-accent: var(--color-gray-300);
   --color-accent-foreground: var(--color-gray-600);
   --color-foreground: var(--color-gray-700);
 
+  --color-destructive: var(--color-red-500);
+  --color-destructive-foreground: var(--color-white);
+
   --font-display: "Rubik Variable", sans-serif;
+
+  --animate-fade-in: fade-in 0.15s ease-out;
+
+  --z-index-content: 10;
+  --z-index-chrome: 20;
+  /* Above Podium's local 10/20/30 column stacking, below dialog overlays. */
+  --z-index-effect: 40;
+  --z-index-overlay: 50;
+  --z-index-modal: 60;
+  --z-index-toast: 70;
 }
 
 button:not(:disabled),
@@ -28,7 +45,7 @@ button:not(:disabled),
   position: absolute;
   height: 200%;
   width: 200%;
-  z-index: 100;
+  z-index: var(--z-index-effect);
   background-image: radial-gradient(
     circle,
     transparent 180px,
@@ -179,5 +196,14 @@ button:not(:disabled),
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

@@ -44,5 +44,10 @@
     "description": "Si è verificato un errore imprevisto. Riprova.",
     "title": "Qualcosa è andato storto"
   },
-  "unexpected": "Si è verificato un errore imprevisto"
+  "unexpected": "Si è verificato un errore imprevisto",
+  "admin": {
+    "cannotDeleteSelf": "Non puoi eliminare il tuo account",
+    "cannotDemoteSelf": "Non puoi retrocedere il tuo account",
+    "cannotDisableSelf": "Non puoi disattivare il tuo account"
+  }
 }

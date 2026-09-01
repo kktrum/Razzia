@@ -45,7 +45,7 @@ const QuestionEditorAnswers = () => {
   }
 
   return (
-    <div className="z-10 flex flex-col gap-3">
+    <div className="z-content flex flex-col gap-3">
       <div className="flex items-center justify-between px-1">
         <div className="text-muted-foreground bg-background rounded-lg px-2 py-1 text-sm font-semibold">
           {currentQuestion.answers.length}

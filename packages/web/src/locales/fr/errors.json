@@ -59,6 +59,8 @@
     "forbidden": "Vous n'avez pas la permission de faire cela"
   },
   "admin": {
-    "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
+    "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+    "cannotDemoteSelf": "Vous ne pouvez pas rétrograder votre propre compte",
+    "cannotDisableSelf": "Vous ne pouvez pas désactiver votre propre compte"
   }
 }

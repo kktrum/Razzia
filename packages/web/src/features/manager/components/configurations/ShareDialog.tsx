@@ -1,6 +1,12 @@
 import type { PublicUser } from "@razzia/common/types/user"
 import Button from "@razzia/web/components/Button"
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@razzia/web/components/Dialog"
+import {
   listQuizzShares,
   listShareCandidates,
   shareQuizz,
@@ -92,25 +98,15 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-card w-full max-w-md rounded-2xl p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-foreground text-lg font-bold">
+          <DialogTitle className="text-foreground text-lg font-bold">
             {t("manager:share.title")}
-          </h2>
-          <button
-            onClick={onClose}
-            type="button"
-            aria-label={t("common:close")}
-          >
+          </DialogTitle>
+          <DialogClose type="button" aria-label={t("common:close")}>
             <X className="text-muted-foreground size-5" />
-          </button>
+          </DialogClose>
         </div>
 
         {loadError ? (
@@ -194,8 +190,8 @@ const ShareDialog = ({ quizzId, ownerId, onClose }: Props) => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

@@ -45,7 +45,7 @@ const QuestionEditorMedia = () => {
   }
 
   return (
-    <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3 p-4">
+    <div className="z-content relative flex flex-1 flex-col items-center justify-center gap-3 p-4">
       <QuestionMedia media={currentQuestion.media} alt="Question Media" />
 
       {!questionMedia?.type && (

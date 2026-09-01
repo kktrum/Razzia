@@ -62,7 +62,7 @@ const GameWrapper = ({
     <section className="relative flex min-h-dvh">
       <GameBackground />
 
-      <div className="z-10 flex w-full flex-1 flex-col justify-between">
+      <div className="z-content flex w-full flex-1 flex-col justify-between">
         {!isConnected && !statusName ? (
           <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
             <Loader className="h-30" />
@@ -103,9 +103,9 @@ const GameWrapper = ({
             {children}
 
             {!manager && (
-              <div className="z-50 flex items-center justify-between bg-white px-4 py-2 text-lg font-bold text-white">
+              <div className="z-chrome flex items-center justify-between bg-white px-4 py-2 text-lg font-bold">
                 <p className="text-gray-800">{player?.username}</p>
-                <div className="rounded-lg bg-gray-800 px-3 py-1 text-lg">
+                <div className="rounded-lg bg-gray-800 px-3 py-1 text-lg text-white">
                   {player?.points}
                 </div>
               </div>

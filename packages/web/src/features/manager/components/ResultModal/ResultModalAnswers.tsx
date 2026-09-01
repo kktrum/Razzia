@@ -98,7 +98,7 @@ const ResultModalAnswers = () => {
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 overflow-hidden px-4 py-3 md:gap-2 md:px-5 md:py-4">
-        <p className="text-md text-foreground mb-1 font-semibold">
+        <p className="text-foreground mb-1 text-base font-semibold">
           {questionResult.question}
         </p>
 

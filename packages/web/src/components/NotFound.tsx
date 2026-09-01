@@ -11,7 +11,7 @@ const NotFound = () => {
 
   return (
     <Background>
-      <div className="z-10 flex flex-col items-center gap-4 text-center">
+      <div className="z-content flex flex-col items-center gap-4 text-center">
         <p className="text-8xl font-bold text-white">404</p>
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-bold text-white">

@@ -44,5 +44,10 @@
     "description": "予期しないエラーが発生しました。もう一度お試しください。",
     "title": "問題が発生しました"
   },
-  "unexpected": "予期しないエラーが発生しました"
+  "unexpected": "予期しないエラーが発生しました",
+  "admin": {
+    "cannotDeleteSelf": "自分のアカウントを削除することはできません",
+    "cannotDemoteSelf": "自分のアカウントを降格することはできません",
+    "cannotDisableSelf": "自分のアカウントを無効にすることはできません"
+  }
 }

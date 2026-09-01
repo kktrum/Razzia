@@ -30,16 +30,23 @@ const Room = ({ data: { text, inviteCode } }: Props) => {
 
   useOnClickOutside({ ref: qrContentRef, handler: () => setQrOpen(false) })
 
+  // These updaters MUST stay functional. Several joins routinely arrive in a
+  // single socket read (e.g. a room full of people scanning the QR at once),
+  // and React batches every update made within one task — so reading the
+  // captured `playerList` would make each event overwrite the previous one,
+  // silently dropping players from the list.
   useEvent(EVENTS.MANAGER.NEW_PLAYER, (player) => {
-    setPlayerList([...playerList, player])
+    setPlayerList((prev) =>
+      prev.some((p) => p.id === player.id) ? prev : [...prev, player],
+    )
   })
 
   useEvent(EVENTS.MANAGER.REMOVE_PLAYER, (playerId) => {
-    setPlayerList(playerList.filter((p) => p.id !== playerId))
+    setPlayerList((prev) => prev.filter((p) => p.id !== playerId))
   })
 
   useEvent(EVENTS.MANAGER.PLAYER_KICKED, (playerId) => {
-    setPlayerList(playerList.filter((p) => p.id !== playerId))
+    setPlayerList((prev) => prev.filter((p) => p.id !== playerId))
   })
 
   useEvent(EVENTS.GAME.TOTAL_PLAYERS, (total) => {
@@ -96,10 +103,10 @@ const Room = ({ data: { text, inviteCode } }: Props) => {
           </AlertDialog.Trigger>
 
           <AlertDialog.Portal>
-            <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
+            <AlertDialog.Overlay className="z-overlay fixed inset-0 bg-black/70" />
             <AlertDialog.Content
               ref={qrContentRef}
-              className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6"
+              className="z-modal fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6"
             >
               <button
                 onClick={handleCloseQrCode}
